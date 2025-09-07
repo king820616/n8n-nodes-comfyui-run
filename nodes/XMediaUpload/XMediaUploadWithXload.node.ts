@@ -17,7 +17,7 @@ export class XMediaUploadWithXload implements INodeType {
 		},
 		credentials: [
 			{
-				name: 'xloadAuth',
+				name: 'xloadAuthApi',
 				required: true,
 			},
 		],

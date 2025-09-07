@@ -1,8 +1,8 @@
 import type { ICredentialType, INodeProperties } from 'n8n-workflow';
 
-export class XloadAuth implements ICredentialType {
-	name = 'xloadAuth';
-	displayName = 'Xload Authentication';
+export class XloadAuthApi implements ICredentialType {
+	name = 'xloadAuthApi';
+	displayName = 'Xload API Authentication';
 	documentationUrl = 'https://your-api-docs.com';
 	properties: INodeProperties[] = [
 		{
