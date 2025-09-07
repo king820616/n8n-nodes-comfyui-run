@@ -155,7 +155,7 @@ export class XMediaUpload implements INodeType {
 
 			const uploadMedia = await appOnlyClient.v2.uploadMedia(buffer, {
 				media_type: mediaType,
-				additionalOwners: [me.data.id],
+				additional_owners: [me.data.id],
 				alt_text: { text: altText }
 			});
 
