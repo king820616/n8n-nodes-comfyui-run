@@ -1,4 +1,4 @@
-import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError } from 'n8n-workflow';
+import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError, INodeExecutionData } from 'n8n-workflow';
 import { N8nApiClient } from '../ComfyUI/apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
 import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../ComfyUI/inputProviders';
@@ -66,6 +66,7 @@ export class XMediaUpload implements INodeType {
 				displayName: 'Media Type',
 				name: 'mediaType',
 				type: 'options',
+				default: EUploadMimeType.Mp4.toString(),
 				options: [
 					{ name: 'Image/PNG', value: EUploadMimeType.Png },
 					{ name: 'Image/JPEG', value: EUploadMimeType.Jpeg },
@@ -73,15 +74,7 @@ export class XMediaUpload implements INodeType {
 					{ name: 'Video/MP4', value: EUploadMimeType.Mp4 },
 					{ name: 'Video/MOV', value: EUploadMimeType.Mov },
 				],
-				default: EUploadMimeType.Mp4,
 				description: 'Type of media being uploaded',
-			},
-			{
-				displayName: 'Alt Text',
-				name: 'altText',
-				type: 'string',
-				default: '',
-				description: 'Accessibility description for the media',
 			},
 			{
 				displayName: 'Create Tweet',
@@ -138,9 +131,8 @@ export class XMediaUpload implements INodeType {
 			const buffer = await provider.getBuffer();
 
 			const mediaType = this.getNodeParameter('mediaType', 0) as EUploadMimeType;
-			const altText = this.getNodeParameter('altText', 0) as string;
 			const createTweet = this.getNodeParameter('createTweet', 0) as boolean;
-			
+
 			// Validate media type matches file format
 			if (mediaType === EUploadMimeType.Mp4 && !buffer.slice(0, 4).equals(Buffer.from('66747970', 'hex'))) {
 				throw new NodeOperationError(this.getNode(), 'File does not appear to be a valid MP4 file');
@@ -149,13 +141,12 @@ export class XMediaUpload implements INodeType {
 			const uploadMedia = await appOnlyClient.v2.uploadMedia(buffer, {
 				media_type: mediaType,
 				additional_owners: [me.data.id],
-				alt_text: { text: altText }
 			});
 
-			const result: any = { 
-				mediaId: uploadMedia, 
+			const result: any = {
+				mediaId: uploadMedia,
 				mediaUrl: `https://twitter.com/${me.data.username}/status/${uploadMedia}`,
-				userId: me.data.id 
+				userId: me.data.id
 			};
 
 			if (createTweet) {
@@ -170,8 +161,8 @@ export class XMediaUpload implements INodeType {
 			return [this.helpers.returnJsonArray(result)];
 
 		} catch (err: any) {
-			throw new NodeApiError(this.getNode(), { 
-				message: `${err.message}: ${JSON.stringify(credentials)}` 
+			throw new NodeApiError(this.getNode(), {
+				message: `${err.message}: ${JSON.stringify(credentials)}`
 			});
 		}
 	}
