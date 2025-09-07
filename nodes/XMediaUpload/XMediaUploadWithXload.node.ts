@@ -1,7 +1,7 @@
 import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError, INodeExecutionData } from 'n8n-workflow';
-import { N8nApiClient } from './apiClient';
+import { N8nApiClient } from '../ComfyUI/apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
-import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from './inputProviders';
+import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../ComfyUI/inputProviders';
 import { XloadAuthApi } from '../credentials/XloadAuth.credentials';
 
 export class XMediaUploadWithXload implements INodeType {
@@ -102,8 +102,8 @@ export class XMediaUploadWithXload implements INodeType {
 		const api = new N8nApiClient(this.helpers);
 		
 		const credentials = await this.getCredentials('xloadAuthApi');
-		const apiUrl = credentials.apiUrl as string;
-		const tokenId = credentials.tokenId as string;
+		const apiUrl = (credentials as any).apiUrl as string;
+		const tokenId = (credentials as any).tokenId as string;
 
 		// Get token list from Xload service
 		const tokens = await this.helpers.request({
