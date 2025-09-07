@@ -7,14 +7,14 @@ import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../C
 
 export class XMediaUpload implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'XMediaUpload',
+		displayName: 'X/Twitter Media Upload',
 		name: 'xMediaUpload',
 		icon: 'file:comfyui.svg',
-		group: ['transform'],
+		group: ['output'],
 		version: 1,
-		description: 'Upload Video to X.com',
+		description: 'Upload media files to X/Twitter with proper formatting and metadata',
 		defaults: {
-			name: 'Upload Video to X.com',
+			name: 'X/Twitter Media Upload',
 		},
 		credentials: [
 			{
@@ -38,8 +38,8 @@ export class XMediaUpload implements INodeType {
 				required: true,
 			},
 			{
-				displayName: 'Input Image',
-				name: 'inputImage',
+				displayName: 'Media Source',
+				name: 'inputMedia',
 				type: 'string',
 				default: '',
 				required: true,
@@ -48,7 +48,7 @@ export class XMediaUpload implements INodeType {
 						inputType: ['url', 'base64'],
 					},
 				},
-				description: 'URL or base64 data of the input image',
+				description: 'URL or base64 data of the media file',
 			},
 			{
 				displayName: 'Binary Property',
@@ -61,7 +61,47 @@ export class XMediaUpload implements INodeType {
 						inputType: ['binary'],
 					},
 				},
-				description: 'Name of the binary property containing the image',
+				description: 'Name of the binary property containing the media file',
+			},
+			{
+				displayName: 'Media Type',
+				name: 'mediaType',
+				type: 'options',
+				options: [
+					{ name: 'Image/PNG', value: EUploadMimeType.Png },
+					{ name: 'Image/JPEG', value: EUploadMimeType.Jpeg },
+					{ name: 'Image/GIF', value: EUploadMimeType.Gif },
+					{ name: 'Video/MP4', value: EUploadMimeType.Mp4 },
+					{ name: 'Video/MOV', value: EUploadMimeType.Mov },
+				],
+				default: EUploadMimeType.Mp4,
+				description: 'Type of media being uploaded',
+			},
+			{
+				displayName: 'Alt Text',
+				name: 'altText',
+				type: 'string',
+				default: '',
+				description: 'Accessibility description for the media',
+			},
+			{
+				displayName: 'Create Tweet',
+				name: 'createTweet',
+				type: 'boolean',
+				default: false,
+				description: 'Whether to immediately create a tweet with this media',
+			},
+			{
+				displayName: 'Tweet Text',
+				name: 'tweetText',
+				type: 'string',
+				default: '',
+				displayOptions: {
+					show: {
+						createTweet: [true],
+					},
+				},
+				description: 'Text content for the tweet',
 			},
 		],
 	};
@@ -92,11 +132,11 @@ export class XMediaUpload implements INodeType {
 			let provider;
 
 			if (inputType === 'url') {
-				const inputImage = this.getNodeParameter('inputImage', 0) as string;
-				provider = new UrlInputProvider(api, inputImage);
+				const inputMedia = this.getNodeParameter('inputMedia', 0) as string;
+				provider = new UrlInputProvider(api, inputMedia);
 			} else if (inputType === 'base64') {
-				const inputImage = this.getNodeParameter('inputImage', 0) as string;
-				provider = new Base64InputProvider(inputImage);
+				const inputMedia = this.getNodeParameter('inputMedia', 0) as string;
+				provider = new Base64InputProvider(inputMedia);
 			} else {
 				const binaryPropertyName = this.getNodeParameter('binaryPropertyName', 0) as string;
 				provider = new BinaryInputProvider(this.helpers, binaryPropertyName, this.getInputData());
@@ -104,12 +144,37 @@ export class XMediaUpload implements INodeType {
 
 			const buffer = await provider.getBuffer();
 
+			const mediaType = this.getNodeParameter('mediaType', 0) as EUploadMimeType;
+			const altText = this.getNodeParameter('altText', 0) as string;
+			const createTweet = this.getNodeParameter('createTweet', 0) as boolean;
+			
+			// Validate media type matches file format
+			if (mediaType === EUploadMimeType.Mp4 && !buffer.slice(0, 4).equals(Buffer.from('66747970', 'hex'))) {
+				throw new NodeOperationError(this.getNode(), 'File does not appear to be a valid MP4 file');
+			}
+
 			const uploadMedia = await appOnlyClient.v2.uploadMedia(buffer, {
-				media_type: EUploadMimeType.Mp4
+				media_type: mediaType,
+				additionalOwners: [me.data.id],
+				alt_text: { text: altText }
 			});
 
+			const result: any = { 
+				mediaId: uploadMedia, 
+				mediaUrl: `https://twitter.com/${me.data.username}/status/${uploadMedia}`,
+				userId: me.data.id 
+			};
 
-			return [this.helpers.returnJsonArray({media: uploadMedia, me})];
+			if (createTweet) {
+				const tweetText = this.getNodeParameter('tweetText', 0) as string;
+				const tweet = await appOnlyClient.v2.tweet(tweetText, {
+					media: { media_ids: [uploadMedia] }
+				});
+				result.tweetId = tweet.data.id;
+				result.tweetUrl = `https://twitter.com/${me.data.username}/status/${tweet.data.id}`;
+			}
+
+			return [this.helpers.returnJsonArray(result)];
 
 		} catch (err: any) {
 			throw new NodeApiError(this.getNode(), { message: err.message + " : " + " : " + JSON.stringify(credentials), });
