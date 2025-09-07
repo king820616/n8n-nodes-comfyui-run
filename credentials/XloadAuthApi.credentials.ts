@@ -1,4 +1,9 @@
-import type { ICredentialType, INodeProperties } from 'n8n-workflow';
+import type { 
+  ICredentialType, 
+  INodeProperties, 
+  ICredentialDataDecryptedObject,
+  IHttpRequestOptions 
+} from 'n8n-workflow';
 
 export class XloadAuthApi implements ICredentialType {
 	name = 'xloadAuthApi';
@@ -25,19 +30,25 @@ export class XloadAuthApi implements ICredentialType {
 		},
 	];
 
-	async authenticate(credentials: ICredentialDataDecryptedObject) {
+	async authenticate(
+		credentials: ICredentialDataDecryptedObject,
+		requestOptions: IHttpRequestOptions
+	): Promise<IHttpRequestOptions> {
 		return {
+			...requestOptions,
 			headers: {
+				...requestOptions.headers,
 				'Authorization': `Bearer ${credentials.tokenId}`,
 				'X-API-URL': credentials.apiUrl
-			}
+			},
+			url: credentials.apiUrl as string
 		};
 	}
 
 	async loadOptions() {
 		return {
 			getTokens: async () => {
-				const credentials = await this.getCredentials('xloadAuthApi');
+				const credentials = await this.helpers.getCredentials('xloadAuthApi');
 				const response = await fetch(`${credentials.apiUrl}/tokens/list`);
 				return response.json();
 			}

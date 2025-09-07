@@ -2,7 +2,6 @@ import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError,
 import { N8nApiClient } from '../ComfyUI/apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
 import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../ComfyUI/inputProviders';
-import { XloadAuthApi } from '../credentials/XloadAuth.credentials';
 
 export class XMediaUploadWithXload implements INodeType {
 	description: INodeTypeDescription = {
