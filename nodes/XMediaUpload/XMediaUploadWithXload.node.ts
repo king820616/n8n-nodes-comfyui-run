@@ -1,9 +1,30 @@
-import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError, INodeExecutionData } from 'n8n-workflow';
+import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError, INodeExecutionData, ILoadOptionsFunctions, INodePropertyOptions } from 'n8n-workflow';
 import { N8nApiClient } from '../ComfyUI/apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
 import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../ComfyUI/inputProviders';
 
 export class XMediaUploadWithXload implements INodeType {
+	methods = {
+		loadOptions: {
+			async getTokens(this: ILoadOptionsFunctions): Promise<INodePropertyOptions[]> {
+				const credentials = await this.getCredentials('xloadAuthApi');
+				const apiUrl = (credentials as any).apiUrl as string;
+				
+				const tokens = await this.helpers.request({
+					method: 'GET',
+					url: `${apiUrl}/tokens/list`,
+					json: true,
+				});
+
+				return tokens.map((t: any) => ({
+					name: t.name || t.id,
+					value: t.id,
+					description: t.description || `Token created at ${new Date(t.createdAt).toLocaleDateString()}`,
+				}));
+			}
+		},
+	};
+
 	description: INodeTypeDescription = {
 		displayName: 'X/Twitter Media Upload (via Xload)',
 		name: 'xMediaUploadWithXload',
