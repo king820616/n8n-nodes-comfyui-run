@@ -9,6 +9,7 @@ export class XloadAuthApi implements ICredentialType {
 	name = 'xloadAuthApi';
 	displayName = 'Xload Authentication API';
 	documentationUrl = 'https://your-api-docs.com';
+	helpers: ICredentialTestFunctions;
 	properties: INodeProperties[] = [
 		{
 			displayName: 'API URL',
