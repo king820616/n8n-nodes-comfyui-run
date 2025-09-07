@@ -1,5 +1,4 @@
-import { IExecuteFunctions, INodeExecutionData, INodeType, INodeTypeDescription, NodeOperationError } from 'n8n-workflow';
-import { NodeApiError } from 'n8n-workflow';
+import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError, NodeApiError } from 'n8n-workflow';
 import { N8nApiClient } from '../ComfyUI/apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
 import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from '../ComfyUI/inputProviders';
@@ -109,18 +108,12 @@ export class XMediaUpload implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const api = new N8nApiClient(this.helpers);
 
-		const meOld = await this.helpers.request("oAuth2Api", {
-			method: "GET",
-			url: "https://api.x.com/2/users/me"
-		});
-
-		console.log("meOld", meOld);
 
 		const credentials = (await this.getCredentials('oAuth2Api')) as any;
 		const accessToken = credentials.oauthTokenData?.access_token;
 
 		if (!accessToken) {
-				throw new NodeOperationError(this.getNode(), 'No access token available!:' + JSON.stringify(credentials));
+				throw new NodeOperationError(this.getNode(), `No access token available: ${JSON.stringify(credentials)}`);
 		}
 		const appOnlyClient = new TwitterApi(accessToken);
 
@@ -177,7 +170,9 @@ export class XMediaUpload implements INodeType {
 			return [this.helpers.returnJsonArray(result)];
 
 		} catch (err: any) {
-			throw new NodeApiError(this.getNode(), { message: err.message + " : " + " : " + JSON.stringify(credentials), });
+			throw new NodeApiError(this.getNode(), { 
+				message: `${err.message}: ${JSON.stringify(credentials)}` 
+			});
 		}
 	}
 }
