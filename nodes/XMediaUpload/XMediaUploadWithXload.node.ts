@@ -70,7 +70,7 @@ export class XMediaUploadWithXload implements INodeType {
 				description: 'URL or base64 data of the media file',
 			},
 			{
-				displayName: 'Token ID',
+				displayName: 'Token Name or ID',
 				name: 'tokenId',
 				type: 'options',
 				typeOptions: {
@@ -78,7 +78,7 @@ export class XMediaUploadWithXload implements INodeType {
 				},
 				default: '',
 				required: true,
-				description: 'Select an API token from Xload service',
+				description: 'Select an API token from Xload service. Choose from the list, or specify an ID using an <a href="https://docs.n8n.io/code-examples/expressions/">expression</a>.',
 			},
 			{
 				displayName: 'Binary Property',
