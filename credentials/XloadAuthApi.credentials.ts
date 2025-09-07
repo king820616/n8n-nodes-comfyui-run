@@ -19,17 +19,6 @@ export class XloadAuthApi implements ICredentialType {
 			default: 'https://api.xload.com',
 			required: true,
 		},
-		{
-			displayName: 'Token ID',
-			name: 'tokenId',
-			type: 'options',
-			typeOptions: {
-				loadOptionsMethod: 'getTokens',
-			},
-			default: '',
-			required: true,
-			description: 'Select an API token from Xload service',
-		},
 	];
 
 	async authenticate(

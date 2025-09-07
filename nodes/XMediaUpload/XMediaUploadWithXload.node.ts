@@ -49,6 +49,17 @@ export class XMediaUploadWithXload implements INodeType {
 				description: 'URL or base64 data of the media file',
 			},
 			{
+				displayName: 'Token ID',
+				name: 'tokenId',
+				type: 'options',
+				typeOptions: {
+					loadOptionsMethod: 'getTokens',
+				},
+				default: '',
+				required: true,
+				description: 'Select an API token from Xload service',
+			},
+			{
 				displayName: 'Binary Property',
 				name: 'binaryPropertyName',
 				type: 'string',
