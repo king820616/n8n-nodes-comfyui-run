@@ -26,9 +26,21 @@ export class XloadAuthApi implements ICredentialType {
 	];
 
 	async authenticate(credentials: ICredentialDataDecryptedObject) {
-		return { 
-			apiUrl: credentials.apiUrl as string,
-			tokenId: credentials.tokenId as string
+		return {
+			headers: {
+				'Authorization': `Bearer ${credentials.tokenId}`,
+				'X-API-URL': credentials.apiUrl
+			}
+		};
+	}
+
+	async loadOptions() {
+		return {
+			getTokens: async () => {
+				const credentials = await this.getCredentials('xloadAuthApi');
+				const response = await fetch(`${credentials.apiUrl}/tokens/list`);
+				return response.json();
+			}
 		};
 	}
 }

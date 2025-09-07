@@ -2,7 +2,7 @@ import { IExecuteFunctions, INodeType, INodeTypeDescription, NodeOperationError,
 import { N8nApiClient } from './apiClient';
 import { EUploadMimeType, TwitterApi } from 'twitter-api-v2';
 import { Base64InputProvider, BinaryInputProvider, UrlInputProvider } from './inputProviders';
-import { XloadAuth } from '../credentials/XloadAuth.credentials';
+import { XloadAuthApi } from '../credentials/XloadAuth.credentials';
 
 export class XMediaUploadWithXload implements INodeType {
 	description: INodeTypeDescription = {
@@ -101,7 +101,7 @@ export class XMediaUploadWithXload implements INodeType {
 	async execute(this: IExecuteFunctions): Promise<INodeExecutionData[][]> {
 		const api = new N8nApiClient(this.helpers);
 		
-		const credentials = await this.getCredentials('xloadAuth');
+		const credentials = await this.getCredentials('xloadAuthApi');
 		const apiUrl = credentials.apiUrl as string;
 		const tokenId = credentials.tokenId as string;
 
