@@ -2,7 +2,8 @@ import type {
   ICredentialType, 
   INodeProperties, 
   ICredentialDataDecryptedObject,
-  IHttpRequestOptions 
+  IHttpRequestOptions,
+  ICredentialTestFunctions 
 } from 'n8n-workflow';
 
 export class XloadAuthApi implements ICredentialType {
