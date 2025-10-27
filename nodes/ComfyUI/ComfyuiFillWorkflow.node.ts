@@ -85,7 +85,7 @@ export class ComfyuiFillWorkflow implements INodeType {
 
 			// Collect outputs
 			const mediaOutputs = Object.values(promptResult.outputs)
-				.flatMap((nodeOutput: any) => nodeOutput.images || nodeOutput.gifs || [])
+				.flatMap((nodeOutput: any) => nodeOutput.images || nodeOutput.gifs || nodeOutput.audio || [])
 				.filter((out: any) => out.type === 'output' || out.type === 'temp')
 				.map((out: any) => ({
 					...out,
@@ -102,6 +102,9 @@ export class ComfyuiFillWorkflow implements INodeType {
 			);
 			const imageOutputs = mediaOutputs.filter(o =>
 				o.filename.endsWith('.png') || o.filename.endsWith('.jpg') || o.filename.endsWith('.jpeg')
+			);
+			const audioOutput = mediaOutputs.filter(o =>
+				o.filename.endsWith('.mp3') || o.filename.endsWith('.wav')
 			);
 
 			const results: INodeExecutionData[] = [];
@@ -152,7 +155,8 @@ export class ComfyuiFillWorkflow implements INodeType {
 			// Process videos + images
 			for (const v of videoOutputs) await downloadAndWrap(v, 'video');
 			for (const i of imageOutputs) await downloadAndWrap(i, 'image');
-
+      for (const i of audioOutput) await downloadAndWrap(i, 'audio');
+            return [results];
 			return [results];
 
 		} catch (err: any) {
